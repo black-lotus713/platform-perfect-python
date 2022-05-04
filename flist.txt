@@ -1,0 +1,2 @@
+youtube:vp9
+brighteon:h264
