@@ -1,7 +1,7 @@
 # platform-perfect-python
-script for calling ffmpeg to check a video and convert as needed
+module for calling ffmpeg to check a video and convert as needed
 
-two args -
+main function: pp_ffmpeg(platform, media_file)
 - platform - target platform such as youtube, brighteon
 - media_file - filename of media file to be checked/converted
   
