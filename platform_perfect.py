@@ -44,15 +44,15 @@ def closest(list, current):
     return list[min(range(len(list)), key = lambda i: abs(list[i]-current))]
 
 def pp_dar_mod(platform,media_file):
-    ratio_dict = {}
+    ratiolist_dict = {}
     try:
         with open(ratiolist_file, 'r') as r:
             for line in r.readlines():
                 ratio_item = line.strip()
                 key,value = ratio_item.split('|',1)
-                ratio_dict[key] = value
+                ratiolist_dict[key] = value
 
-        if not platform in ratio_dict:
+        if not platform in ratiolist_dict:
             raise Exception(f"No valid ratios for {platform} in file 'rlist.txt'")
 
         med_ratio_type, med_ratio = get_video_dar(media_file)
@@ -60,31 +60,34 @@ def pp_dar_mod(platform,media_file):
         if not med_ratio_type:
             raise Exception(f"No video stream in {media_file}")
 
-        if med_ratio in ratio_dict[platform]:
+        if med_ratio in ratiolist_dict[platform]:
             print(f"{media_file} already in appropriate DAR for {platform}")
         else:
             ratios_list = []
-            ratio_dict = {}
-            for ratio in ratio_dict[platform]:
+            ratios_dict = {}
+            for ratio in ratiolist_dict[platform].split(','):
                 width,height = ratio.split(':')
                 dec_ratio = int(width) / int(height)
-                ratios.append(dec_ratio)
-                ratio_dict[dec_ratio] = ratio
+                ratios_list.append(dec_ratio)
+                ratios_dict[dec_ratio] = ratio
 
             med_width, med_height = med_ratio.split(':')
             med_dec_ratio = int(med_width) / int(med_height)
             target_dec_ratio = closest(ratios_list, med_dec_ratio)
-            target_ratio = ratio_dict[target_dec_ratio]
+            target_ratio = ratios_dict[target_dec_ratio]
 
-            print(f"Converting file to {target_ratio}")
+            if med_dec_ratio == target_dec_ratio:
+                print(f"{media_file} already in appropriate DAR for {platform}")
+            else:
+                print(f"Converting file to {target_ratio}")
 
-            (
-            ffmpeg.input(media_file)
-            .output(output_file,acodec='copy',vcodec='copy',setdar=target_ratio)
-            .run(capture_stdout=True, capture_stderr=True)
-            )
+                (
+                ffmpeg.input(media_file)
+                .output(output_file,acodec='copy',vcodec='copy',setdar=target_ratio)
+                .run(capture_stdout=True, capture_stderr=True)
+                )
 
-            print("file converted")
+                print("file converted")
 
     except ffmpeg.Error as e:
         print(f"Failed to transcode file {media_file}.")
